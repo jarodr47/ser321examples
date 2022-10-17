@@ -222,12 +222,12 @@ class WebServer {
 	    builder.append("HTTP/1.1 400 Bad Request\n");
             builder.append("Content-Type: text/html; charset=utf-8\n");
             builder.append("\n");
-            builder.append("Bad Request - No operands provided for multiplication, please provide two integers as url query parameters 'num1' and 'num2'.");
+            builder.append("<h3>400 - Bad Request</h3> <hr> No operands provided for multiplication, please provide two integers as url query parameters 'num1' and 'num2'.");
           } catch (NumberFormatException e) {
 	    builder.append("HTTP/1.1 400 Bad Request\n");
             builder.append("Content-Type: text/html; charset=utf-8\n");
             builder.append("\n");
-            builder.append("Bad Request - Not enough operands provided or operand type is not an integer. Please provide two integers as url query parameters 'num1' and 'num2'.");
+            builder.append("<h3>400 - Bad Request</h3> <hr> Not enough operands provided or operand type is not an integer. Please provide two integers as url query parameters 'num1' and 'num2'.");
 	  }
         } else if (request.contains("github?")) {
           // pulls the query from the request and runs it with GitHub's REST API
@@ -237,23 +237,37 @@ class WebServer {
           //     then drill down to what you care about
           // "Owner's repo is named RepoName. Example: find RepoName's contributors" translates to
           //     "/repos/OWNERNAME/REPONAME/contributors"
+	  try {
+	    Map<String, String> query_pairs = new LinkedHashMap<String, String>();
+            query_pairs = splitQuery(request.replace("github?", ""));
+            String json = fetchURL("https:"+"/"+"/"+"api.github.com/" + query_pairs.get("query"));
+            System.out.println(json);
+	    JSONArray repoArray = new JSONArray(json);
 
-	  Map<String, String> query_pairs = new LinkedHashMap<String, String>();
-          query_pairs = splitQuery(request.replace("github?", ""));
-          String json = fetchURL("https:"+"/"+"/"+"api.github.com/" + query_pairs.get("query"));
-          System.out.println(json);
-	  JSONArray repoArray = new JSONArray(json);
-
-          builder.append("HTTP/1.1 200 OK\n");
-          builder.append("Content-Type: text/html; charset=utf-8\n");
-          builder.append("\n");
-	  for (int i = 0; i < repoArray.length(); i++) {
-	    int j = i+1;
-	    builder.append("<b>Repo " + j + ":</b>" + "<br>");
-	    builder.append("Full Name: " + repoArray.getJSONObject(i).getString("full_name") + "<br>");
-	    builder.append("ID: " + repoArray.getJSONObject(i).getInt("id") + "<br>");
-	    builder.append("Owner Login: " + repoArray.getJSONObject(i).getJSONObject("owner").getString("login") + "<br>");
-	    builder.append("<br>");
+            builder.append("HTTP/1.1 200 OK\n");
+            builder.append("Content-Type: text/html; charset=utf-8\n");
+            builder.append("\n");
+	    builder.append("<h3>Query: " + query_pairs.get("query") + "</h3>");
+	    for (int i = 0; i < repoArray.length(); i++) {
+	      int j = i+1;
+	      builder.append("<b>Repo " + j + ":</b>" + "<br>");
+	      builder.append("Full Name: " + repoArray.getJSONObject(i).getString("full_name") + "<br>");
+	      builder.append("ID: " + repoArray.getJSONObject(i).getInt("id") + "<br>");
+	      builder.append("Owner Login: " + repoArray.getJSONObject(i).getJSONObject("owner").getString("login") + "<br>");
+	      builder.append("<br>");
+	    }
+	  } catch (StringIndexOutOfBoundsException e) {
+	    e.printStackTrace();
+	    builder.append("HTTP/1.1 400 Bad Request\n");
+            builder.append("Content-Type: text/html; charset=utf-8\n");
+            builder.append("\n");
+            builder.append("<h3>400 - Bad Request</h3> <hr> Utilizing the /github endpoint requires a query parameter specified after '/github?query='. Please enter a query parameter for your GitHub API query.");
+	  } catch (JSONException e) {
+	    e.printStackTrace();
+            builder.append("HTTP/1.1 400 Bad Request\n");
+            builder.append("Content-Type: text/html; charset=utf-8\n");
+            builder.append("\n");
+            builder.append("<h3>400 - Bad Request</h3> <hr> Queryigin the GitHub API for a user's repositories requires the following path in your query parameter:<b>users/[VALIDuserName]/repos</b>. See <a href='https:"+"/"+"/docs.github.com/en/rest/repos/repos#list-repositories-for-a-user'>GitHub API Docs</a> for reference.");
 	  }
           // TODO: Parse the JSON returned by your fetch and create an appropriate
           // response based on what the assignment document asks for
