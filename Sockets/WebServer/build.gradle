@@ -24,4 +24,10 @@ task FunWebServer(type: JavaExec) {
   standardInput = System.in
 }
 
+dependencies {
+  implementation group: 'org.json', name: 'json', version: '20220924'
+}
 
+repositories { 
+  mavenCentral() 
+}

@@ -18,6 +18,7 @@ package funHttpServer;
 
 import java.io.*;
 import java.net.*;
+import org.json.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -239,17 +240,24 @@ class WebServer {
 
 	  Map<String, String> query_pairs = new LinkedHashMap<String, String>();
           query_pairs = splitQuery(request.replace("github?", ""));
-          String json = fetchURL("https://api.github.com/" + query_pairs.get("query"));
+          String json = fetchURL("https:"+"/"+"/"+"api.github.com/" + query_pairs.get("query"));
           System.out.println(json);
+	  JSONArray repoArray = new JSONArray(json);
 
           builder.append("HTTP/1.1 200 OK\n");
           builder.append("Content-Type: text/html; charset=utf-8\n");
           builder.append("\n");
-          builder.append("Check the todos mentioned in the Java source file");
+	  for (int i = 0; i < repoArray.length(); i++) {
+	    int j = i+1;
+	    builder.append("<b>Repo " + j + ":</b>" + "<br>");
+	    builder.append("Full Name: " + repoArray.getJSONObject(i).getString("full_name") + "<br>");
+	    builder.append("ID: " + repoArray.getJSONObject(i).getInt("id") + "<br>");
+	    builder.append("Owner Login: " + repoArray.getJSONObject(i).getJSONObject("owner").getString("login") + "<br>");
+	    builder.append("<br>");
+	  }
           // TODO: Parse the JSON returned by your fetch and create an appropriate
           // response based on what the assignment document asks for
-
-        } else {
+         } else {
           // if the request is not recognized at all
 
           builder.append("HTTP/1.1 400 Bad Request\n");
