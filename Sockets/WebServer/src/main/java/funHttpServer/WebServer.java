@@ -271,6 +271,45 @@ class WebServer {
 	  }
           // TODO: Parse the JSON returned by your fetch and create an appropriate
           // response based on what the assignment document asks for
+	 } else if (request.contains("joke?")) {
+           // pulls the query from the request and runs it with JokeAPI's REST API
+           // check out https://sv443.net/jokeapi/v2/ for docs
+           //
+           // HINT: REST is organized by nesting topics. Figure out the biggest one first,
+           //     then drill down to what you care about
+           try {
+             Map<String, String> query_pairs = new LinkedHashMap<String, String>();
+             query_pairs = splitQuery(request.replace("joke?", ""));
+
+	     String topic1 = query_pairs.get("topic1");
+             String topic2 = query_pairs.get("topic2");
+	     String json = fetchURL("https:"+"/"+"/"+"v2.jokeapi.dev/joke/" + topic1 + "," + topic2 + "?safe-mode&type=single");
+	     JSONObject jokeJson = new JSONObject(json);
+	     System.out.println(jokeJson);
+	     if (jokeJson.getInt("code") == 106){
+	     	builder.append("HTTP/1.1 400 Bad Request\n");
+		builder.append("Content-Type: text/html; charset=utf-8\n");
+                builder.append("\n");
+                builder.append("<h3>404 - Bad Request</h3> <hr> It looks like you provided an invalid joke category or missed one of the required 2. " + jokeJson.get("additionalInfo")+ " Please provide two of the categories mentioned in the previous sentence as url query parameters 'topic1' and topic2'.");
+	     } else {
+	       builder.append("HTTP/1.1 200 OK\n");
+               builder.append("Content-Type: text/html; charset=utf-8\n");
+               builder.append("\n");
+               builder.append("<h3>Joke of the Day:</h3>");
+	       builder.append(jokeJson.get("joke"));
+	     }
+	   } catch (JSONException e) {
+	     e.printStackTrace();
+	     builder.append("HTTP/1.1 400 Bad Request\n");
+             builder.append("Content-Type: text/html; charset=utf-8\n");
+             builder.append("\n");
+             builder.append("<h3>404 - Bad Request</h3> <hr> Please provide two joke categories you would like to hear a joke from as url query parameters 'topic1' and 'topic2'."); 
+	   } catch (StringIndexOutOfBoundsException e) {
+	     builder.append("HTTP/1.1 400 Bad Request\n");
+             builder.append("Content-Type: text/html; charset=utf-8\n");
+             builder.append("\n");
+             builder.append("<h3>404 - Bad Request</h3> <hr> So you want to hear a joke? Providing 'joke?' alone is not going to cut it. Please provide two categories you would like to hear a joke from as url query parameters 'topic1' and 'topic2'. Some categories to choose from are: 'Any, Misc, Programming, Dark, Pun, Spooky, Christmas' (case insensitive). All jokes are safe for work/school.");
+	   }
          } else {
           // if the request is not recognized at all
 
