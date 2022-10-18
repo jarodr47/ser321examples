@@ -257,13 +257,13 @@ class WebServer {
 	      builder.append("<br>");
 	    }
 	  } catch (StringIndexOutOfBoundsException e) {
-	    e.printStackTrace();
+	    //e.printStackTrace();
 	    builder.append("HTTP/1.1 400 Bad Request\n");
             builder.append("Content-Type: text/html; charset=utf-8\n");
             builder.append("\n");
             builder.append("<h3>400 - Bad Request</h3> <hr> Utilizing the /github endpoint requires a query parameter specified after '/github?query='. Please enter a query parameter for your GitHub API query.");
 	  } catch (JSONException e) {
-	    e.printStackTrace();
+	    //e.printStackTrace();
             builder.append("HTTP/1.1 400 Bad Request\n");
             builder.append("Content-Type: text/html; charset=utf-8\n");
             builder.append("\n");
@@ -286,20 +286,20 @@ class WebServer {
 	     String json = fetchURL("https:"+"/"+"/"+"v2.jokeapi.dev/joke/" + topic1 + "," + topic2 + "?safe-mode&type=single");
 	     JSONObject jokeJson = new JSONObject(json);
 	     System.out.println(jokeJson);
-	     if (jokeJson.getInt("code") == 106){
-	     	builder.append("HTTP/1.1 400 Bad Request\n");
-		builder.append("Content-Type: text/html; charset=utf-8\n");
+	     if (jokeJson.has("joke")){
+	        builder.append("HTTP/1.1 200 OK\n");
+                builder.append("Content-Type: text/html; charset=utf-8\n");
                 builder.append("\n");
-                builder.append("<h3>404 - Bad Request</h3> <hr> It looks like you provided an invalid joke category or missed one of the required 2. " + jokeJson.get("additionalInfo")+ " Please provide two of the categories mentioned in the previous sentence as url query parameters 'topic1' and topic2'.");
+                builder.append("<h3>Joke of the Day:</h3>");
+                builder.append(jokeJson.get("joke"));
 	     } else {
-	       builder.append("HTTP/1.1 200 OK\n");
-               builder.append("Content-Type: text/html; charset=utf-8\n");
-               builder.append("\n");
-               builder.append("<h3>Joke of the Day:</h3>");
-	       builder.append(jokeJson.get("joke"));
+ 	        builder.append("HTTP/1.1 400 Bad Request\n");
+                builder.append("Content-Type: text/html; charset=utf-8\n");
+                builder.append("\n");
+                builder.append("<h3>404 - Bad Request</h3> <hr> It looks like you provided an invalid joke category or missed one of the required 2. Possible categories are: 'Any, Misc, Programming, Dark, Pun, Spooky, Christmas' (case insensitive). Please provide two of the categories mentioned in the previous sentence as url query parameters 'topic1' and topic2'.");
 	     }
 	   } catch (JSONException e) {
-	     e.printStackTrace();
+	     //e.printStackTrace();
 	     builder.append("HTTP/1.1 400 Bad Request\n");
              builder.append("Content-Type: text/html; charset=utf-8\n");
              builder.append("\n");
@@ -309,6 +309,64 @@ class WebServer {
              builder.append("Content-Type: text/html; charset=utf-8\n");
              builder.append("\n");
              builder.append("<h3>404 - Bad Request</h3> <hr> So you want to hear a joke? Providing 'joke?' alone is not going to cut it. Please provide two categories you would like to hear a joke from as url query parameters 'topic1' and 'topic2'. Some categories to choose from are: 'Any, Misc, Programming, Dark, Pun, Spooky, Christmas' (case insensitive). All jokes are safe for work/school.");
+	     builder.append("<br><br>Try this example '/joke?topic1=Software&Topic2=Misc'");
+	   }
+	 } else if (request.contains("dog?")) {
+	   try {
+	     Map<String, String> query_pairs = new LinkedHashMap<String, String>();
+             query_pairs = splitQuery(request.replace("dog?", ""));
+             String breed1 = query_pairs.get("breed1");
+             String breed2 = query_pairs.get("breed2");
+	     if (breed2 == null) {
+	       String json = fetchURL("https:"+"/"+"/"+"dog.ceo/api/breed/" + breed1 + "/images/random");
+	       JSONObject dogJson = new JSONObject(json);
+	       System.out.println(dogJson);
+	       builder.append("HTTP/1.1 200 OK\n");
+               builder.append("Content-Type: text/html; charset=utf-8\n");
+               builder.append("\n");
+               builder.append("<h3>Cute Dog Picture:</h3>");
+               builder.append("<img src=" + dogJson.get("message") + " style=" + "width:600px;" + ">");
+	     } else if (breed1 == null) {
+               String json = fetchURL("https:"+"/"+"/"+"dog.ceo/api/breed/" + breed2 + "/images/random");
+	       JSONObject dogJson = new JSONObject(json);
+	       System.out.println(dogJson);
+	       builder.append("HTTP/1.1 200 OK\n");
+               builder.append("Content-Type: text/html; charset=utf-8\n");
+               builder.append("\n");
+               builder.append("<h3>Cute Dog Picture:</h3>");
+               builder.append("<img src=" + dogJson.get("message") + " style=" + "width:600px;" + ">");
+	     } else if (breed1 != null && breed2 != null) {
+	       String json = fetchURL("https:"+"/"+"/"+"dog.ceo/api/breed/" + breed1 + "/images/random");
+	       String json2 = fetchURL("https:"+"/"+"/"+"dog.ceo/api/breed/" + breed2 + "/images/random");
+               JSONObject dogJson1 = new JSONObject(json);
+	       JSONObject dogJson2 = new JSONObject(json2);
+               //System.out.println(dogJson);
+               builder.append("HTTP/1.1 200 OK\n");
+               builder.append("Content-Type: text/html; charset=utf-8\n");
+               builder.append("\n");
+               builder.append("<h3>First Cute Dog Picture:</h3>");
+               builder.append("<img src=" + dogJson1.get("message") + " style=" + "width:600px;" + ">");
+	       builder.append("<h3>Second Cute Dog Picture:</h3>");
+               builder.append("<img src=" + dogJson2.get("message") + " style=" + "width:600px;" + ">");
+	      }
+	   } catch (JSONException e) {
+	     //e.printStackTrace();
+	     String json = fetchURL("https:"+"/"+"/"+"dog.ceo/api/breeds/list/all");
+	     JSONObject dogJson = new JSONObject(json);
+             builder.append("HTTP/1.1 400 Bad Request\n");
+             builder.append("Content-Type: text/html; charset=utf-8\n");
+             builder.append("\n");
+             builder.append("<h3>404 - Bad Request</h3> <hr> It seems you may have forgotten to specify a breed or two breeds you would like to see pictures from. Here is a list of breeds you can choose from: <br><br>" + dogJson.get("message"));
+	     builder.append("Try this example '/dog?breed1=hound&breed2=germanshepherd'");
+	   } catch (StringIndexOutOfBoundsException e) {
+	     //e.printStackTrace();
+             String json = fetchURL("https:"+"/"+"/"+"dog.ceo/api/breeds/list/all");
+             JSONObject dogJson = new JSONObject(json);
+             builder.append("HTTP/1.1 400 Bad Request\n");
+             builder.append("Content-Type: text/html; charset=utf-8\n");
+             builder.append("\n");
+             builder.append("<h3>404 - Bad Request</h3> <hr> To use the /dog endpoint you must specify a dog breed or two for which you would like to see a picture of. These must be supplied as url query parameters 'breed1' and/or 'breed2'. Here is a list of breeds you can choose from: <br><br>" + dogJson.get("message"));
+	     builder.append("Try this example '/dog?breed1=hound&breed2=germanshepherd'");
 	   }
          } else {
           // if the request is not recognized at all
