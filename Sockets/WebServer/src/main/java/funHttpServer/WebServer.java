@@ -293,10 +293,10 @@ class WebServer {
                 builder.append("<h3>Joke of the Day:</h3>");
                 builder.append(jokeJson.get("joke"));
 	     } else {
- 	        builder.append("HTTP/1.1 470 Invalid or Incomplete Topic\n");
+ 	        builder.append("HTTP/1.1 460 Invalid or Incomplete Topic\n");
                 builder.append("Content-Type: text/html; charset=utf-8\n");
                 builder.append("\n");
-                builder.append("<h3>470 - Invalid or Incomplete Topic</h3> <hr> It looks like you provided an invalid joke category or missed one of the required 2. Possible categories are: 'Any, Misc, Programming, Dark, Pun, Spooky, Christmas' (case insensitive). Please provide two of the categories mentioned in the previous sentence as url query parameters 'topic1' and topic2'.");
+                builder.append("<h3>460 - Invalid or Incomplete Topic</h3> <hr> It looks like you provided an invalid joke category or missed one of the required 2. Possible categories are: 'Any, Misc, Programming, Dark, Pun, Spooky, Christmas' (case insensitive). Please provide two of the categories mentioned in the previous sentence as url query parameters 'topic1' and topic2'.");
 	     }
 	   } catch (JSONException e) {
 	     //e.printStackTrace();
